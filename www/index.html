@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="default-src * data: gap: https://ssl.gstatic.com; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'">
+  <script src="components/loader.js"></script>
+  <script src="lib/onsenui/js/onsenui.min.js"></script>
+  <script src="lib/ncmb.min.js"></script>
+
+  <link rel="stylesheet" href="components/loader.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsenui.css">
+  <link rel="stylesheet" href="lib/onsenui/css/onsen-css-components.css">
+  <link rel="stylesheet" href="css/style.css">
+
+  <script src="js/app.js"></script>
+</head>
+<body>
+  <ons-navigator id="navi" page="login.html"></ons-navigator>
+
+  <!-- ログイン画面 -->
+  <template id="login.html">
+    <ons-page id="login_page">
+      <ons-toolbar>
+        <div class="center">出退勤アプリ</div>
+      </ons-toolbar>
+      <div style="text-align: center;">
+        <p style="margin-top: 30px;">
+          <ons-input id="username" modifier="underbar" placeholder="Username"></ons-input>
+        </p>
+        <p>
+          <ons-input id="password" modifier="underbar" type="password" placeholder="Password"></ons-input>
+        </p>
+        <p style="margin-top: 30px;">
+          <ons-button onclick="login()">ログイン</ons-button>
+        </p>
+      </div>
+    </ons-page>
+  </template>
+
+  <!-- 打刻画面 -->
+  <template id="register.html">
+    <ons-page id="register_page">
+      <ons-toolbar>
+        <div class="left">
+          <ons-toolbar-button onclick="logout()">
+              <ons-icon icon="sign-out"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+        <div class="center">出退勤データ登録</div>
+        <div class="right" id="list_btn" style="display:none">
+          <ons-toolbar-button onclick="document.querySelector('#navi').pushPage('employees_list.html')">
+            <ons-icon icon="list-alt"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <div style="text-align: center; margin: 40px; font-size: 1.6em;">
+        <p id="today_date" style="font-size: 1em; font-weight:bold; height:50px"></p>
+        <div style="margin: 40px 20px;">
+          <ons-row vertical-align="center" style="margin-bottom: 30px;">
+            <ons-col width="50px">
+              <ons-button id="start_btn" onclick="saveStartTime()">出勤</ons-button>
+            </ons-col>
+            <ons-col name="start_time">--:--</ons-col>
+          </ons-row>
+          <ons-row vertical-align="center">
+            <ons-col width="50px">
+              <ons-button id="end_btn" onclick="saveEndTime()">退勤</ons-button>
+            </ons-col>
+            <ons-col name="end_time">--:--</ons-col>
+          </ons-row>
+        </div>
+      </div>
+    </ons-page>
+  </template>
+  
+  <!-- 管理者用：社員一覧画面 -->
+  <template id="employees_list.html">
+    <ons-page id="employee_list_page">
+      <ons-toolbar>
+        <div class="left">
+          <ons-back-button>Back</ons-back-button>
+        </div>
+        <div class="center">社員一覧</div>
+        <div class="right">
+          <ons-toolbar-button onclick="document.querySelector('#navi').pushPage('add_employee.html')">
+            <ons-icon icon="plus"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <div style="text-align: center;">
+        <ons-list id="employee_list">
+        </ons-list>
+      </div>    
+    </ons-page>
+  </template>
+
+  <template id="employee_info">
+    <ons-list-item tappable onclick="getMonthlyRecords()">
+      <ons-row>
+        <ons-col name="employee_no" width="100px"></ons-col>
+        <ons-col name="employee_name"></ons-col>
+      </ons-row>
+    </ons-list-item>
+  </template>
+
+  <!-- 管理者用：社員情報登録画面 -->
+  <template id="add_employee.html">
+    <ons-page id="add_employee_page">
+      <ons-toolbar>
+        <div class="left">
+          <ons-back-button>Back</ons-back-button>
+        </div>
+        <div class="center">社員情報登録</div>
+      </ons-toolbar>
+      <div style="text-align: center;">
+        <ons-list modifier="inset" style="margin-top: 30px;">
+          <ons-list-header>社員番号</ons-list-header>
+          <ons-list-item>
+            <ons-input name="employee_no"></ons-input>
+          </ons-list-item>
+        </ons-list>
+        <ons-list modifier="inset" style="margin-top: 30px;">
+          <ons-list-header>ユーザー名</ons-list-header>
+          <ons-list-item>
+            <ons-input name="employee_name"></ons-input>
+          </ons-list-item>
+        </ons-list>
+        <ons-list modifier="inset" style="margin-top: 30px;">
+          <ons-list-header>パスワード</ons-list-header>
+          <ons-list-item>
+            <ons-input name="employee_pw" type="password"></ons-input>
+          </ons-list-item>
+        </ons-list>
+        <p>
+          <ons-button onclick="addEmployee();">登録</ons-button>
+        </p>
+      </div>
+    </ons-page>
+  </template>
+
+  <!-- 管理者用：社員情報編集画面 -->
+  <template id="edit_employee.html">
+    <ons-page id="edit_employee_page">
+      <ons-toolbar>
+        <div class="left">
+          <ons-back-button>Back</ons-back-button>
+        </div>
+        <div class="center">社員情報編集</div>
+        <div class="right">
+          <ons-toolbar-button id="delete_employee_btn">
+            <ons-icon icon="trash"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <div style="text-align: center;">
+        <ons-list modifier="inset" style="margin-top: 30px;">
+          <ons-list-header>社員番号</ons-list-header>
+          <ons-list-item>
+            <ons-input name="employee_no"></ons-input>
+          </ons-list-item>
+        </ons-list>
+        <ons-list modifier="inset" style="margin-top: 30px;">
+          <ons-list-header>ユーザー名</ons-list-header>
+          <ons-list-item>
+            <ons-input name="employee_name"></ons-input>
+          </ons-list-item>
+        </ons-list>
+        <ons-list modifier="inset" style="margin-top: 30px;">
+          <ons-list-header>パスワード</ons-list-header>
+          <ons-list-item>
+            <ons-input name="employee_pw" type="password"></ons-input>
+          </ons-list-item>
+        </ons-list>
+        <p>
+          <ons-button id="update_employee_btn">更新</ons-button>
+        </p>
+      </div>
+    </ons-page>
+  </template>
+
+  <!-- 管理者用：社員別月間出退勤データ -->
+  <template id="monthly_records.html">
+    <ons-page id="monthly_records_page">
+      <ons-toolbar>
+        <div class="left">
+          <ons-back-button>Back</ons-back-button>
+        </div>
+        <div class="center"><span name="employee_name"></span></div>
+        <div class="right">
+          <ons-toolbar-button id="edit_employee_btn">
+            <ons-icon icon="user"></ons-icon>
+          </ons-toolbar-button>
+        </div>
+      </ons-toolbar>
+      <div style="text-align: center">
+        <ons-row vertical-align="center" style="height:60px">
+          <ons-col>
+            <ons-button  modifier="quiet" id="prev_btn">先月</ons-button>
+          </ons-col>
+          <ons-col>
+            <p id="current_month" style="font-size: 1.3em; font-weight:bold;"></p>
+          </ons-col>
+          <ons-col>
+            <ons-button  modifier="quiet" id="next_btn">翌月</ons-button>
+          </ons-col>
+        </ons-row>
+
+        <ons-list id="monthly_records_list" style="font-family:monospace; font-size: 1.1em;">
+        </ons-list>
+      </div>
+    </ons-page>
+  </template>
+
+</body>
+</html>
